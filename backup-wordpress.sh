@@ -3,7 +3,7 @@ start=`date +%s`
 time=$(date +"%T")
 echo "Started backup process at $time"
 
-echo "Sites found:"
+echo "Site config files found:"
 find ./public_html/ -type f -name "wp-config.php"
 
 
@@ -14,7 +14,7 @@ else
     echo "Creating ~/script_backup_dir/"
 fi 
 i=0
-
+echo ""
 for n in $( find ./public_html/ -type f -name "wp-config.php" )
 do
     db_name=`grep 'DB_NAME' $n | sed "s/define(\s*'DB_NAME', '//g" | sed "s/'\s*);//g" | tr '\r' '\n'`
@@ -23,25 +23,31 @@ do
     db_host=`grep 'DB_HOST' $n | sed "s/define(\s*'DB_HOST', '//g" | sed "s/'\s*);//g" | tr '\r' '\n'`
     name=`echo $n | sed 's/\.\/public_html\///g' | sed 's/\/wp-config\.php//g' | tr '\r' '\n'`
     home=`dirname $n | tr '\r' '\n'`
+    
+    echo "Backing up $name"
 
     mysqldump --no-tablespaces -u$db_user -p$db_pass -h$db_host $db_name > $home/wp-content/sql_dump.sql
 
     if [ -f $home/wp-content/sql_dump.sql ] ; then 
         echo "Database backup was created for $name"
     else 
-        echo "Datbase backup was not created. Something went wrong."
+        echo "Datbase backup was not created for $name. Something went wrong."
     fi 
-
-    cd ~/script_backup_dir
-    zip -qr "$name.zip" ~/$home/. 
-    if [ -f $name.zip ] ; then 
-        echo "backup file created"
+    cd $home
+    zip -rq $name.zip .
+    mv $name.zip ~/script_backup_dir/
+    # cd ~/script_backup_dir
+    # zip -qr "$name.zip" ~/$home/. 
+    if [ -f ~/script_backup_dir/$name.zip ] ; then 
+        echo "Backup created for $name"
     else 
-        echo "Backup was not created. Something went wrong."
+        echo "Backup was not created for $name. Something went wrong."
     fi 
+    
     cd ~
     ((i=i+1))
     echo "Backups created: $i"
+    echo ""
 done
 end=`date +%s`
 runtime=$((end-start))
