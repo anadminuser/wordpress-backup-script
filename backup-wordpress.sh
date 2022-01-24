@@ -36,8 +36,7 @@ do
     cd $home
     zip -rq $name.zip .
     mv $name.zip ~/script_backup_dir/
-    # cd ~/script_backup_dir
-    # zip -qr "$name.zip" ~/$home/. 
+    rm -f $home/wp-content/sql_dump.sql
     if [ -f ~/script_backup_dir/$name.zip ] ; then 
         echo "Backup created for $name"
     else 
